@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --primary: oklch(0.45 0.15 250);
+  --primary-foreground: oklch(0.95 0.01 250);
+  --secondary: oklch(0.95 0.01 250);
+  --secondary-foreground: oklch(0.145 0 0);
+  --accent: oklch(0.55 0.2 300);
+  --accent-foreground: oklch(0.98 0.01 300);
+  --muted: oklch(0.96 0.01 0);
+  --muted-foreground: oklch(0.45 0.01 0);
+  --border: oklch(0.9 0.01 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --success: oklch(0.6 0.15 150);
+  --warning: oklch(0.7 0.15 80);
+  --error: oklch(0.6 0.15 20);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.1 0.01 0);
+    --foreground: oklch(0.95 0 0);
+    --primary: oklch(0.6 0.15 250);
+    --primary-foreground: oklch(0.1 0 0);
+    --secondary: oklch(0.2 0.01 250);
+    --secondary-foreground: oklch(0.95 0 0);
+    --accent: oklch(0.65 0.2 300);
+    --accent-foreground: oklch(0.1 0 0);
+    --muted: oklch(0.2 0.01 0);
+    --muted-foreground: oklch(0.7 0.01 0);
+    --border: oklch(0.25 0.01 0);
+    --card: oklch(0.12 0.01 0);
+    --card-foreground: oklch(0.95 0 0);
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply bg-[var(--primary)] text-[var(--primary-foreground)] hover:brightness-110 shadow-lg shadow-[var(--primary)]/20;
+  }
+  .btn-secondary {
+    @apply bg-[var(--secondary)] text-[var(--secondary-foreground)] hover:bg-[var(--secondary)]/80;
+  }
+  .card {
+    @apply bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-sm p-6;
+  }
+  .input {
+    @apply w-full px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 transition-all;
+  }
+}
+
+/* Glassmorphism effects */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .glass {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeIn 0.5s ease forwards;
+}
