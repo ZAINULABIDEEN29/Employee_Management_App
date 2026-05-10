@@ -4,11 +4,12 @@ import Employee from '@/models/Employee';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     await dbConnect();
-    const employee = await Employee.findById(params.id).populate('department');
+    const employee = await Employee.findById(id).populate('department');
     if (!employee) {
       return NextResponse.json({ error: 'Employee not found' }, { status: 404 });
     }
@@ -20,12 +21,13 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     await dbConnect();
     const body = await req.json();
-    const employee = await Employee.findByIdAndUpdate(params.id, body, {
+    const employee = await Employee.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,
     });
@@ -40,11 +42,12 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     await dbConnect();
-    const employee = await Employee.findByIdAndDelete(params.id);
+    const employee = await Employee.findByIdAndDelete(id);
     if (!employee) {
       return NextResponse.json({ error: 'Employee not found' }, { status: 404 });
     }

@@ -32,9 +32,10 @@ async function getDepartments() {
   return res.json();
 }
 
-export default async function EmployeesPage({ searchParams }: { searchParams: any }) {
+export default async function EmployeesPage({ searchParams }: { searchParams: Promise<any> }) {
+  const resolvedSearchParams = await searchParams;
   const [{ employees, total, pages, currentPage }, departments] = await Promise.all([
-    getEmployees(searchParams),
+    getEmployees(resolvedSearchParams),
     getDepartments()
   ]);
 
@@ -59,14 +60,14 @@ export default async function EmployeesPage({ searchParams }: { searchParams: an
             <input 
               name="search"
               type="text" 
-              defaultValue={searchParams.search}
+              defaultValue={resolvedSearchParams.search}
               placeholder="Search by name, email or ID..." 
               className="input pl-10"
             />
           </div>
           <div className="flex gap-2">
             <div className="relative">
-              <select name="department" defaultValue={searchParams.department} className="input appearance-none pr-10 min-w-[160px]">
+              <select name="department" defaultValue={resolvedSearchParams.department} className="input appearance-none pr-10 min-w-[160px]">
                 <option value="">All Departments</option>
                 {departments.map((dept: any) => (
                   <option key={dept._id} value={dept._id}>{dept.name}</option>
@@ -75,7 +76,7 @@ export default async function EmployeesPage({ searchParams }: { searchParams: an
               <Filter className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none" />
             </div>
             <div className="relative">
-              <select name="status" defaultValue={searchParams.status} className="input appearance-none pr-10 min-w-[140px]">
+              <select name="status" defaultValue={resolvedSearchParams.status} className="input appearance-none pr-10 min-w-[140px]">
                 <option value="">All Status</option>
                 <option value="Active">Active</option>
                 <option value="On Leave">On Leave</option>
