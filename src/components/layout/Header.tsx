@@ -1,19 +1,27 @@
 'use client';
 
 import React from 'react';
-import { Bell, Search, User } from 'lucide-react';
+import { Bell, Search, User, Menu } from 'lucide-react';
 
-export default function Header() {
+export default function Header({ setIsOpen }: { setIsOpen?: (v: boolean) => void }) {
   return (
-    <header className="h-20 border-b border-[var(--border)] bg-[var(--card)]/80 backdrop-blur-md sticky top-0 z-40 px-8 flex items-center justify-between">
-      <div className="flex-1 max-w-xl">
-        <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] group-focus-within:text-[var(--primary)] transition-colors" />
-          <input 
-            type="text" 
-            placeholder="Search for employees, departments..." 
-            className="w-full pl-10 pr-4 py-2 bg-[var(--muted)] border-transparent focus:bg-[var(--card)] focus:border-[var(--primary)] rounded-xl transition-all outline-none text-sm"
-          />
+    <header className="h-20 border-b border-[var(--border)] bg-[var(--card)]/80 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-8 flex items-center justify-between">
+      <div className="flex items-center gap-4 flex-1">
+        <button 
+          className="lg:hidden p-2 -ml-2 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--muted)] rounded-lg transition-colors"
+          onClick={() => setIsOpen?.(true)}
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+        <div className="flex-1 max-w-xl hidden sm:block">
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] group-focus-within:text-[var(--primary)] transition-colors" />
+            <input 
+              type="text" 
+              placeholder="Search for employees, departments..." 
+              className="w-full pl-10 pr-4 py-2 bg-[var(--muted)] border-transparent focus:bg-[var(--card)] focus:border-[var(--primary)] rounded-xl transition-all outline-none text-sm"
+            />
+          </div>
         </div>
       </div>
 

@@ -1,10 +1,31 @@
 import React from 'react';
 import { Building2, Plus, Edit2, Trash2, Users } from 'lucide-react';
+import dbConnect from '@/lib/mongodb';
+import Department from '@/models/Department';
 
 async function getDepartments() {
-  const res = await fetch('http://localhost:3000/api/departments', { cache: 'no-store' });
-  if (!res.ok) return [];
-  return res.json();
+  await dbConnect();
+    
+  const departments = await Department.aggregate([
+    {
+      $lookup: {
+        from: 'employees',
+        localField: '_id',
+        foreignField: 'department',
+        as: 'employees'
+      }
+    },
+    {
+      $project: {
+        name: 1,
+        description: 1,
+        employeeCount: { $size: '$employees' }
+      }
+    },
+    { $sort: { name: 1 } }
+  ]);
+
+  return JSON.parse(JSON.stringify(departments));
 }
 
 export default async function DepartmentsPage() {

@@ -130,7 +130,7 @@ export default function LoginPage() {
             <button 
               type="submit" 
               disabled={isLoading}
-              className="btn btn-primary w-full py-6 mt-4 group relative overflow-hidden"
+              className="btn btn-primary w-full py-4 mt-4 group relative overflow-hidden"
             >
               <div className="relative z-10 flex items-center justify-center gap-2 font-bold text-lg">
                 {isLoading ? (

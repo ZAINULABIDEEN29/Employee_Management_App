@@ -1,5 +1,6 @@
 import React from 'react';
 import { Users, Building2, Wallet, TrendingUp, UserPlus, FileText } from 'lucide-react';
+import Link from 'next/link';
 import dbConnect from '@/lib/mongodb';
 import Employee from '@/models/Employee';
 import Department from '@/models/Department';
@@ -7,25 +8,32 @@ import Department from '@/models/Department';
 async function getStats() {
   await dbConnect();
   
-  const [employeeCount, deptCount, employees] = await Promise.all([
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const [employeeCount, newEmployeesCount, deptCount, onLeaveCount, employees] = await Promise.all([
     Employee.countDocuments({ status: 'Active' }),
+    Employee.countDocuments({ status: 'Active', joinDate: { $gte: thirtyDaysAgo } }),
     Department.countDocuments({}),
-    Employee.find({}).sort({ createdAt: -1 }).limit(5),
+    Employee.countDocuments({ status: 'On Leave' }),
+    Employee.find({}).sort({ createdAt: -1 }).limit(5).lean(),
   ]);
 
   // Calculate total monthly payroll
-  const totalPayroll = await Employee.aggregate([
+  const totalPayrollResult = await Employee.aggregate([
     { $match: { status: 'Active' } },
     { $group: { _id: null, total: { $sum: "$salary" } } }
   ]);
 
-  const monthlyPayroll = totalPayroll.length > 0 ? totalPayroll[0].total / 12 : 0;
+  const monthlyPayroll = totalPayrollResult.length > 0 ? totalPayrollResult[0].total / 12 : 0;
 
   return {
     employeeCount,
+    newEmployeesCount,
     deptCount,
+    onLeaveCount,
     monthlyPayroll,
-    recentEmployees: employees
+    recentEmployees: JSON.parse(JSON.stringify(employees))
   };
 }
 
@@ -33,10 +41,34 @@ export default async function DashboardPage() {
   const statsData = await getStats();
 
   const stats = [
-    { name: 'Total Employees', value: statsData.employeeCount.toString(), icon: Users, change: '+12%', changeType: 'increase' },
-    { name: 'Total Departments', value: statsData.deptCount.toString(), icon: Building2, change: '0%', changeType: 'neutral' },
-    { name: 'Est. Monthly Payroll', value: `$${Math.round(statsData.monthlyPayroll).toLocaleString()}`, icon: Wallet, change: '+5.4%', changeType: 'increase' },
-    { name: 'Active Projects', value: '14', icon: FileText, change: '+2', changeType: 'increase' },
+    { 
+      name: 'Active Employees', 
+      value: statsData.employeeCount.toString(), 
+      icon: Users, 
+      change: statsData.newEmployeesCount > 0 ? `+${statsData.newEmployeesCount} recently` : 'No recent hires', 
+      changeType: statsData.newEmployeesCount > 0 ? 'increase' : 'neutral' 
+    },
+    { 
+      name: 'Total Departments', 
+      value: statsData.deptCount.toString(), 
+      icon: Building2, 
+      change: 'Live tracking', 
+      changeType: 'neutral' 
+    },
+    { 
+      name: 'Est. Monthly Payroll', 
+      value: `$${Math.round(statsData.monthlyPayroll).toLocaleString()}`, 
+      icon: Wallet, 
+      change: 'Active salaries', 
+      changeType: 'neutral' 
+    },
+    { 
+      name: 'Staff On Leave', 
+      value: statsData.onLeaveCount.toString(), 
+      icon: UserPlus, 
+      change: 'Currently away', 
+      changeType: 'neutral' 
+    },
   ];
 
   return (
@@ -71,7 +103,7 @@ export default async function DashboardPage() {
         <div className="lg:col-span-2 card">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold">Recent Hires</h2>
-            <button className="text-[var(--primary)] text-sm font-medium hover:underline">View All</button>
+            <Link href="/dashboard/employees" className="text-[var(--primary)] text-sm font-medium hover:underline">View All</Link>
           </div>
           <div className="space-y-4">
             {statsData.recentEmployees.length > 0 ? (
@@ -102,7 +134,7 @@ export default async function DashboardPage() {
         <div className="card">
           <h2 className="text-lg font-bold mb-6">Quick Actions</h2>
           <div className="space-y-4">
-            <button className="w-full flex items-center gap-3 p-4 bg-[var(--muted)] hover:bg-[var(--primary)]/10 rounded-xl transition-all text-left group">
+            <Link href="/dashboard/employees" className="w-full flex items-center gap-3 p-4 bg-[var(--muted)] hover:bg-[var(--primary)]/10 rounded-xl transition-all text-left group">
               <div className="p-2 bg-[var(--card)] rounded-lg group-hover:bg-white transition-all">
                 <UserPlus className="w-5 h-5 text-[var(--primary)]" />
               </div>
@@ -110,8 +142,8 @@ export default async function DashboardPage() {
                 <p className="font-semibold text-sm">Add New Employee</p>
                 <p className="text-xs text-[var(--muted-foreground)]">Setup a new staff record</p>
               </div>
-            </button>
-            <button className="w-full flex items-center gap-3 p-4 bg-[var(--muted)] hover:bg-[var(--accent)]/10 rounded-xl transition-all text-left group">
+            </Link>
+            <Link href="/dashboard/departments" className="w-full flex items-center gap-3 p-4 bg-[var(--muted)] hover:bg-[var(--accent)]/10 rounded-xl transition-all text-left group">
               <div className="p-2 bg-[var(--card)] rounded-lg group-hover:bg-white transition-all">
                 <Building2 className="w-5 h-5 text-[var(--accent)]" />
               </div>
@@ -119,13 +151,13 @@ export default async function DashboardPage() {
                 <p className="font-semibold text-sm">New Department</p>
                 <p className="text-xs text-[var(--muted-foreground)]">Create a new business unit</p>
               </div>
-            </button>
-            <button className="w-full flex items-center gap-3 p-4 bg-[var(--muted)] hover:bg-[var(--success)]/10 rounded-xl transition-all text-left group">
-              <div className="p-2 bg-[var(--card)] rounded-lg group-hover:bg-white transition-all">
+            </Link>
+            <button disabled className="w-full flex items-center gap-3 p-4 bg-[var(--muted)] opacity-70 cursor-not-allowed rounded-xl transition-all text-left group">
+              <div className="p-2 bg-[var(--card)] rounded-lg">
                 <FileText className="w-5 h-5 text-emerald-500" />
               </div>
               <div>
-                <p className="font-semibold text-sm">Generate Report</p>
+                <p className="font-semibold text-sm">Generate Report (Coming Soon)</p>
                 <p className="text-xs text-[var(--muted-foreground)]">Export monthly payroll data</p>
               </div>
             </button>
